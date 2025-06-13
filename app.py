@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -10,21 +10,36 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    mensaje = None
+    error = None
+
     if request.method == 'POST':
-        file = request.files['file']
+        file = request.files.get('file')
         if file and file.filename.endswith('.csv'):
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-            file.save(filepath)
-            
-            df = pd.read_csv(filepath)
-            dias = df['Día'].tolist()
-            pasos = df['Pasos'].tolist()
-            calorias = df['Calorías'].tolist()
-            minutos = df['Minutos'].tolist()
+            try:
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+                file.save(filepath)
 
-            return render_template('index.html', labels=dias, pasos=pasos, calorias=calorias, minutos=minutos)
+                df = pd.read_csv(filepath)
 
-    return render_template('index.html', labels=[], pasos=[], calorias=[], minutos=[])
+                # Validar columnas requeridas
+                columnas_requeridas = {'Día', 'Pasos', 'Calorías', 'Minutos'}
+                if not columnas_requeridas.issubset(df.columns):
+                    error = "El archivo CSV debe contener las columnas: Día, Pasos, Calorías y Minutos."
+                else:
+                    dias = df['Día'].tolist()
+                    pasos = df['Pasos'].tolist()
+                    calorias = df['Calorías'].tolist()
+                    minutos = df['Minutos'].tolist()
+
+                    mensaje = "Archivo cargado correctamente ✅"
+                    return render_template('index.html', labels=dias, pasos=pasos, calorias=calorias, minutos=minutos, mensaje=mensaje, error=None)
+            except Exception as e:
+                error = f"Error al procesar el archivo: {str(e)}"
+        else:
+            error = "Por favor selecciona un archivo .csv válido."
+
+    return render_template('index.html', labels=[], pasos=[], calorias=[], minutos=[], mensaje=mensaje, error=error)
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
