@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Seguimiento de Actividad Física</title>
+        <link rel="stylesheet" href="/static/style.css">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Seguimiento de Actividad Física</h1>
+            <form method="POST" enctype="multipart/form-data">
+                <input type="file" name="file" accept=".csv" required>
+                <button type="submit">Cargar CSV</button>
+            </form>
+
+            {% if labels %}
+            <h2>Pasos</h2>
+            <canvas id="pasosChart"></canvas>
+            <h2>Calorías</h2>
+            <canvas id="caloriasChart"></canvas>
+            <h2>Minutos</h2>
+            <canvas id="minutosChart"></canvas>
+
+            <script>
+                const labels = {{ labels | safe }};
+                const pasos = {{ pasos | safe }};
+                const calorias = {{ calorias | safe }};
+                const minutos = {{ minutos | safe }};
+
+                new Chart(document.getElementById('pasosChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Pasos',
+                            data: pasos,
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { scales: { y: { beginAtZero: true } } }
+                });
+
+                new Chart(document.getElementById('caloriasChart'), {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Calorías',
+                            data: calorias,
+                            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 2,
+                            fill: false
+                        }]
+                    },
+                    options: { scales: { y: { beginAtZero: true } } }
+                });
+
+                new Chart(document.getElementById('minutosChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Minutos de ejercicio',
+                            data: minutos,
+                            backgroundColor: 'rgba(255, 206, 86, 0.5)',
+                            borderColor: 'rgba(255, 206, 86, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { scales: { y: { beginAtZero: true } } }
+                });
+            </script>
+            {% endif %}
+        </div>
+    </body>
+</html>
